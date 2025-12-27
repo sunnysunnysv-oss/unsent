@@ -103,14 +103,14 @@ textarea::placeholder {
 
 <script>
 // ========== CONFIG ==========
-const API_URL = "https://script.google.com/macros/s/AKfycbzNCFt9CjfnITkElnk8m8ei3NUU5SCP1MgU9rC8z80Fa6YYu2OpOoTWD5Heapt5VuKf/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzsyZKTSvPCf3QiNvMutifbj0NnvlCxkUdmGz021PvTJrQ3ety2oS0y-7-zwnxW9wd_/exec";
 
 // ========== FUNCTIONS ==========
 async function loadMessage() {
   try {
     const res = await fetch(API_URL);
     const data = await res.json();
-    if(data.length){
+    if (Array.isArray(data) && data.length) {
       const msgs = data.map(d => d.message);
       document.getElementById("msg").innerText = msgs[Math.floor(Math.random() * msgs.length)];
     } else {
@@ -124,12 +124,12 @@ async function loadMessage() {
 
 async function submitMessage() {
   const text = document.getElementById("text").value.trim();
-  if(!text) return;
+  if (!text) return;
   try {
     await fetch(API_URL, {
       method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({message:text})
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ message: text })
     });
     document.getElementById("text").value = "";
     document.getElementById("form").style.display = "none";
