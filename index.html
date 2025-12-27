@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Unsent</title>
+<title>Unsent Messages</title>
 <style>
-/* General Styles */
 body {
   margin: 0;
   font-family: 'Arial', sans-serif;
@@ -76,7 +75,6 @@ textarea::placeholder {
   color: #aaa;
 }
 
-/* Neon Glow Animation */
 @keyframes glow {
   0% { text-shadow: 0 0 5px #00fff0; }
   50% { text-shadow: 0 0 20px #00fff0; }
@@ -93,7 +91,8 @@ textarea::placeholder {
 
 <div class="container">
   <div class="message" id="msg">Loading…</div>
-  <button onclick="loadMessage()">Refresh</button>
+  <button onclick="prevMessage()">Previous</button>
+  <button onclick="nextMessage()">Next</button>
   <button onclick="toggleForm()">Submit one</button>
   <div id="form" style="display:none; margin-top:20px;">
     <textarea id="text" placeholder="Write the message you never sent…"></textarea><br>
@@ -102,19 +101,21 @@ textarea::placeholder {
 </div>
 
 <script>
-// ========== CONFIG ==========
-const API_URL = "https://script.google.com/macros/s/AKfycbzsyZKTSvPCf3QiNvMutifbj0NnvlCxkUdmGz021PvTJrQ3ety2oS0y-7-zwnxW9wd_/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwYbrXJwAtv2sFfJQwqX2Yvxo3hbxcsalLuWo7Hhn-r8X2AgT68gfvLEf3NCNlLG2Xm/exec";
 
-// ========== FUNCTIONS ==========
-async function loadMessage() {
+let messages = [];
+let currentIndex = 0;
+
+// Load all messages from GAS
+async function loadMessages() {
   try {
     const res = await fetch(API_URL);
-    const data = await res.json();
-    if (Array.isArray(data) && data.length) {
-      const msgs = data.map(d => d.message);
-      document.getElementById("msg").innerText = msgs[Math.floor(Math.random() * msgs.length)];
-    } else {
+    messages = await res.json();
+    if (!messages.length) {
       document.getElementById("msg").innerText = "Nothing here yet.";
+    } else {
+      currentIndex = 0;
+      showMessage(currentIndex);
     }
   } catch(err) {
     document.getElementById("msg").innerText = "Unable to load messages.";
@@ -122,18 +123,40 @@ async function loadMessage() {
   }
 }
 
+// Show message at index
+function showMessage(index) {
+  if(messages.length) {
+    document.getElementById("msg").innerText = messages[index].message;
+  }
+}
+
+// Navigate messages
+function nextMessage() {
+  if(messages.length) {
+    currentIndex = (currentIndex + 1) % messages.length;
+    showMessage(currentIndex);
+  }
+}
+
+function prevMessage() {
+  if(messages.length) {
+    currentIndex = (currentIndex - 1 + messages.length) % messages.length;
+    showMessage(currentIndex);
+  }
+}
+
+// Submit a new message
 async function submitMessage() {
   const text = document.getElementById("text").value.trim();
-  if (!text) return;
+  if(!text) return;
   try {
     await fetch(API_URL, {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
       body: JSON.stringify({ message: text })
     });
     document.getElementById("text").value = "";
     document.getElementById("form").style.display = "none";
-    loadMessage();
+    await loadMessages(); // reload messages after submission
   } catch(err) {
     alert("Failed to submit message.");
     console.error(err);
@@ -145,8 +168,8 @@ function toggleForm() {
   f.style.display = f.style.display === "none" ? "block" : "none";
 }
 
-// Load first message
-loadMessage();
+// Auto-load messages on page load
+loadMessages();
 </script>
 
 </body>
