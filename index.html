@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unsent</title>
+<style>
+/* General Styles */
+body {
+  margin: 0;
+  font-family: 'Arial', sans-serif;
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  color: #fff;
+  overflow: hidden;
+}
+
+.container {
+  text-align: center;
+  max-width: 600px;
+  width: 90%;
+  padding: 20px;
+  background: rgba(0,0,0,0.4);
+  border-radius: 20px;
+  box-shadow: 0 0 40px rgba(255,255,255,0.1);
+}
+
+.message {
+  font-size: 2rem;
+  line-height: 1.4;
+  margin-bottom: 40px;
+  min-height: 100px;
+  color: #00fff0;
+  text-shadow: 0 0 10px #00fff0, 0 0 20px #00fff0;
+}
+
+button {
+  background: none;
+  border: 2px solid #00fff0;
+  padding: 12px 25px;
+  margin: 8px;
+  color: #00fff0;
+  font-size: 1rem;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+button:hover {
+  background: #00fff0;
+  color: #0b0b0b;
+  box-shadow: 0 0 20px #00fff0, 0 0 40px #00fff0;
+}
+
+textarea {
+  width: 100%;
+  height: 100px;
+  padding: 12px;
+  margin-top: 15px;
+  border-radius: 12px;
+  border: 2px solid #00fff0;
+  background: rgba(0,0,0,0.7);
+  color: #fff;
+  font-size: 1rem;
+  resize: none;
+  outline: none;
+  text-align: center;
+}
+
+textarea::placeholder {
+  color: #aaa;
+}
+
+/* Neon Glow Animation */
+@keyframes glow {
+  0% { text-shadow: 0 0 5px #00fff0; }
+  50% { text-shadow: 0 0 20px #00fff0; }
+  100% { text-shadow: 0 0 5px #00fff0; }
+}
+
+.message {
+  animation: glow 2s infinite;
+}
+
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="message" id="msg">Loading…</div>
+  <button onclick="loadMessage()">Refresh</button>
+  <button onclick="toggleForm()">Submit one</button>
+  <div id="form" style="display:none; margin-top:20px;">
+    <textarea id="text" placeholder="Write the message you never sent…"></textarea><br>
+    <button onclick="submitMessage()">Let it go</button>
+  </div>
+</div>
+
+<script>
+// ========== CONFIG ==========
+const API_URL = "YOUR_SHEETY_API_ENDPOINT/messages"; // Replace with your API URL
+
+// ========== FUNCTIONS ==========
+async function loadMessage() {
+  try {
+    const res = await fetch(API_URL);
+    const data = await res.json();
+    if(data.length){
+      const msgs = data.map(d => d.message);
+      document.getElementById("msg").innerText = msgs[Math.floor(Math.random() * msgs.length)];
+    } else {
+      document.getElementById("msg").innerText = "Nothing here yet.";
+    }
+  } catch(err) {
+    document.getElementById("msg").innerText = "Unable to load messages.";
+    console.error(err);
+  }
+}
+
+async function submitMessage() {
+  const text = document.getElementById("text").value.trim();
+  if(!text) return;
+  try {
+    await fetch(API_URL, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({message:text})
+    });
+    document.getElementById("text").value = "";
+    document.getElementById("form").style.display = "none";
+    loadMessage();
+  } catch(err) {
+    alert("Failed to submit message.");
+    console.error(err);
+  }
+}
+
+function toggleForm() {
+  const f = document.getElementById("form");
+  f.style.display = f.style.display === "none" ? "block" : "none";
+}
+
+// Load first message
+loadMessage();
+</script>
+
+</body>
+</html>
